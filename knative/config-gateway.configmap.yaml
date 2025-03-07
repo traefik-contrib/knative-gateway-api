@@ -1,0 +1,21 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: config-gateway
+  namespace: knative-serving
+data:
+  # external-gateways: |
+  #   - class: traefik
+  #     gateway: ingress/traefik
+  #     service: ingress/traefik
+  #     supported-features:
+  #       - HTTPRouteRequestTimeout
+
+  # local-gateways defines the Gateway to be used for cluster local traffic
+  local-gateways: |
+    - class: traefik
+      gateway: ingress/traefik
+      service: ingress/traefik
+      supported-features:
+        - HTTPRouteRequestTimeout

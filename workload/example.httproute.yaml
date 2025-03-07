@@ -1,0 +1,42 @@
+#
+# NOTE: this route has to overlap *exactly* with the one created
+# by Knative serving automatically! That's why it is named this way
+#
+# Technially Traefik should see this automatically and modify it (?) or
+# create it's own to match.
+#
+# The parentRef works, but the hostnames are *instantly* replaced by what 
+# Knative thinks they should be
+#
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: example.localhost
+spec:
+  parentRefs:
+    - name: traefik
+      namespace: ingress
+  hostnames:
+    - example.localhost
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: example
+          namespace: default # TODO: change, if changing
+          port: 80
+      filters:
+        # Core filter which adds a header
+        - type: RequestHeaderModifier
+          requestHeaderModifier:
+            add:
+              - name: x-post-topic
+                value: GatewayAPI
+        - type: ExtensionRef
+          extensionRef:
+            group: traefik.io
+            kind: Middleware
+            name: add-prefix-gwapi
