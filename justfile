@@ -79,6 +79,7 @@ deploy: deploy-k8s deploy-knative deploy-example
     # NOTE: The overriding service (w/ LoadBalancer) must be deployed BEFORE the Knative Service!
     {{kubectl}} apply -n {{workload_ns}} -f {{just_dir}}/workload/example.svc.yaml
     {{kubectl}} apply -n {{workload_ns}} -f {{just_dir}}/workload/example.knativesvc.yaml
+    {{kubectl}} apply -n {{workload_ns}} -f {{just_dir}}/workload/example.httproute.yaml
 
 [group('workload')]
 @undeploy-example:
@@ -87,6 +88,7 @@ deploy: deploy-k8s deploy-knative deploy-example
     {{kubectl}} delete -n {{workload_ns}} -f {{just_dir}}/workload/example.domainmapping.yaml || true
     {{kubectl}} delete -n {{workload_ns}} -f {{just_dir}}/workload/example.clusterdomainclaim.yaml || true
     {{kubectl}} delete -n {{workload_ns}} -f {{just_dir}}/workload/example.svc.yaml || true
+    {{kubectl}} delete -n {{workload_ns}} -f {{just_dir}}/workload/example.httproute.yaml || true
 
 [group('workload')]
 @deploy-example-custom-httproute:

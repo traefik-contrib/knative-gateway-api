@@ -127,9 +127,14 @@ just deploy
 > [!WARNING]
 > Unfortunately, you will likely have to run `just deploy` multiple (~3) times!
 >
+> Please wait around 5 seconds then try again
+>
 > Common failures include:
->   - CRDs not being created fast enough
+>   - CRDs not being created fast enough (upstream resource files do not split split out CRDs)
 >   - Validation Webhooks failing (as they startup there can be a lag)
+>
+> This can be fixed by splitting out the resources and applying them manually in the right order
+> but it's easier to just retry after a short wait for now.
 
 Generally, you should not get the same error two times in a row, and at some point (within ~3 runs),
 there will be no errors.

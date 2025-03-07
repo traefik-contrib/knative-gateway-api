@@ -5,7 +5,7 @@
 # Technially Traefik should see this automatically and modify it (?) or
 # create it's own to match.
 #
-# The parentRef works, but the hostnames are *instantly* replaced by what 
+# The parentRef works, but the hostnames are *instantly* replaced by what
 # Knative thinks they should be
 #
 ---
@@ -26,7 +26,7 @@ spec:
             value: /
       backendRefs:
         - name: example
-          namespace: default # TODO: change, if changing
+          namespace: ingress # TODO: change, if changing
           port: 80
       filters:
         # Core filter which adds a header
