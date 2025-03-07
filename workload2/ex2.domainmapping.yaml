@@ -1,0 +1,12 @@
+---
+apiVersion: serving.knative.dev/v1beta1
+kind: DomainMapping
+metadata:
+  name: ex2.localhost
+spec:
+  ref:
+    name: ex2
+    kind: Service
+    apiVersion: serving.knative.dev/v1
+  # tls:
+  #   secretName: <cert-secret>

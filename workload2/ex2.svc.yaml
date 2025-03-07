@@ -1,0 +1,12 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ex2
+spec:
+  type: LoadBalancer
+  selector:
+    "serving.knative.dev/service": ex2
+  ports:
+    - port: 80
+      protocol: TCP

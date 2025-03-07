@@ -164,12 +164,15 @@ NAME      CLASS     ADDRESS        PROGRAMMED   AGE
 traefik   traefik   172.19.255.1   True         92s
 ```
 
-> [!CAUTION]
-> At present, it seems the gateway *must* be in the same namespace as the HTTPRoute
-> to work properly.
+> [!NOTE]
+> At present, `Gateway`s must be in the same namespace as the HTTPRoutes they service to work properly.
 >
-> If using this repo verbatim it shouldn't be an issue (everyting is
-> deployed into `ingress`), but this is worth looking into later (it may be just a config mistake).
+> This *may* be just a configuration miss, but in general this is not actually a problem with Traefik,
+> completely identical Gateways (same port, same endpoint etc) are properly deduped and served appropriately
+> as long as their hostnames differ, for `HTTPRoute` objects.
+>
+> Both gateways have the *same* external address, and traffic is routed appropriately to workloads, and each
+> workload is triggered independently by KNative, with shared activator machinery.
 
 ### Trigger the Example workload
 

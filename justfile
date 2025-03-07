@@ -13,10 +13,6 @@ traefik_image_version := env_var_or_default("TRAEFIK_IMAGE_VERSION", "v3.3.3")
 kind_ctx_name := env_var_or_default("KIND_CTX_NAME", "kind-exp-traefik")
 kind_cluster_name := env_var_or_default("KIND_CLUSTER_NAME", "exp-traefik")
 
-# At present, it lokos like the gateway has to be in the same namespace
-# this may just be a configuration mistake.
-workload_ns := env_var_or_default("WORKLOAD_NS", "ingress")
-
 @_default:
     {{just}} --list
 
@@ -70,27 +66,51 @@ deploy: deploy-k8s deploy-knative deploy-example
     echo -e "\n==> removing activator patch\n"
     {{kubectl}} patch deployment -n knative-serving activator --type=json -p='[{"op": "remove", "path": "/spec/template/spec/containers/0/livenessProbe"}, {"op": "remove", "path": "/spec/template/spec/containers/0/readinessProbe"}]'
 
-# Deploy the example workload (knative)
+# Deploy the example workload to the 'ingress' namespace (knative)
 [group('workload')]
 @deploy-example:
-    {{kubectl}} apply -n {{workload_ns}} -f {{just_dir}}/workload/add-prefix-gwapi.middleware.yaml
-    {{kubectl}} apply -n {{workload_ns}} -f {{just_dir}}/workload/example.clusterdomainclaim.yaml
-    {{kubectl}} apply -n {{workload_ns}} -f {{just_dir}}/workload/example.domainmapping.yaml
+    {{kubectl}} apply -n ingress -f {{just_dir}}/workload/add-prefix-gwapi.middleware.yaml
+    {{kubectl}} apply -n ingress -f {{just_dir}}/workload/example.clusterdomainclaim.yaml
+    {{kubectl}} apply -n ingress -f {{just_dir}}/workload/example.domainmapping.yaml
     # NOTE: The overriding service (w/ LoadBalancer) must be deployed BEFORE the Knative Service!
-    {{kubectl}} apply -n {{workload_ns}} -f {{just_dir}}/workload/example.svc.yaml
-    {{kubectl}} apply -n {{workload_ns}} -f {{just_dir}}/workload/example.knativesvc.yaml
+    {{kubectl}} apply -n ingress -f {{just_dir}}/workload/example.svc.yaml
+    {{kubectl}} apply -n ingress -f {{just_dir}}/workload/example.knativesvc.yaml
     # NOTE: this setup works *without* overriding the HTTPRoute
     # If you want to add custom middleware you can either override or do some patching
-    # {{kubectl}} apply -n {{workload_ns}} -f {{just_dir}}/workload/example.httproute.yaml
+    # {{kubectl}} apply -n ingress -f {{just_dir}}/workload/example.httproute.yaml
 
 [group('workload')]
 @undeploy-example:
-    {{kubectl}} delete -n {{workload_ns}} -f {{just_dir}}/workload/example.knativesvc.yaml || true
-    {{kubectl}} delete -n {{workload_ns}} -f {{just_dir}}/workload/add-prefix-gwapi.middleware.yaml || true
-    {{kubectl}} delete -n {{workload_ns}} -f {{just_dir}}/workload/example.domainmapping.yaml || true
-    {{kubectl}} delete -n {{workload_ns}} -f {{just_dir}}/workload/example.clusterdomainclaim.yaml || true
-    {{kubectl}} delete -n {{workload_ns}} -f {{just_dir}}/workload/example.svc.yaml || true
-    # {{kubectl}} delete -n {{workload_ns}} -f {{just_dir}}/workload/example.httproute.yaml || true
+    {{kubectl}} delete -n ingress -f {{just_dir}}/workload/example.knativesvc.yaml || true
+    {{kubectl}} delete -n ingress -f {{just_dir}}/workload/add-prefix-gwapi.middleware.yaml || true
+    {{kubectl}} delete -n ingress -f {{just_dir}}/workload/example.domainmapping.yaml || true
+    {{kubectl}} delete -n ingress -f {{just_dir}}/workload/example.clusterdomainclaim.yaml || true
+    {{kubectl}} delete -n ingress -f {{just_dir}}/workload/example.svc.yaml || true
+    # {{kubectl}} delete -n ingress -f {{just_dir}}/workload/example.httproute.yaml || true
+
+# Deploy the example "ex2" workload to the 'default' namespace (knative)
+[group('workload')]
+@deploy-ex2:
+    {{kubectl}} apply -n default -f {{just_dir}}/workload2/web.gateway.yaml
+    {{kubectl}} apply -n default -f {{just_dir}}/workload2/add-prefix-gwapi.middleware.yaml
+    {{kubectl}} apply -n default -f {{just_dir}}/workload2/ex2.clusterdomainclaim.yaml
+    {{kubectl}} apply -n default -f {{just_dir}}/workload2/ex2.domainmapping.yaml
+    # NOTE: The overriding service (w/ LoadBalancer) must be deployed BEFORE the Knative Service!
+    {{kubectl}} apply -n default -f {{just_dir}}/workload2/ex2.svc.yaml
+    {{kubectl}} apply -n default -f {{just_dir}}/workload2/ex2.knativesvc.yaml
+    # NOTE: this setup works *without* overriding the HTTPRoute
+    # If you want to add custom middleware you can either override or do some patching
+    # {{kubectl}} apply -n default -f {{just_dir}}/workload/ex2.httproute.yaml
+
+# Undeploy the dex2 workload
+[group('workload')]
+@undeploy-ex2:
+    {{kubectl}} delete -n default -f {{just_dir}}/workload/ex2.knativesvc.yaml || true
+    {{kubectl}} delete -n default -f {{just_dir}}/workload/add-prefix-gwapi.middleware.yaml || true
+    {{kubectl}} delete -n default -f {{just_dir}}/workload/ex2.domainmapping.yaml || true
+    {{kubectl}} delete -n default -f {{just_dir}}/workload/ex2.clusterdomainclaim.yaml || true
+    {{kubectl}} delete -n default -f {{just_dir}}/workload/ex2.svc.yaml || true
+    # {{kubectl}} delete -n default -f {{just_dir}}/workload/ex2.httproute.yaml || true
 
 [group('workload')]
 @deploy-example-custom-httproute:
