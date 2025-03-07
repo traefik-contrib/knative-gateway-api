@@ -185,6 +185,92 @@ Deploy the `example` workload w/ Gateway integration:
 just deploy-example
 ```
 
+## Successful Cluster state
+
+Assuming everything was deployed to the `ingress` cluster (alongside `traefik` and the automatically created `Gateway`), things settle like this.
+
+## All of `knative-serving`
+
+```
+➜ k get all -n knative-serving
+NAME                                             READY   STATUS    RESTARTS   AGE
+pod/activator-666895ddd-mbw8x                    1/1     Running   0          5m20s
+pod/autoscaler-7f4754ffb4-bv4n2                  1/1     Running   0          5m24s
+pod/controller-cc7d86698-rt4qm                   1/1     Running   0          5m24s
+pod/net-gateway-api-controller-f89786cfd-fdgz5   1/1     Running   0          5m24s
+pod/net-gateway-api-webhook-699b8b87b7-m5wgd     1/1     Running   0          5m24s
+pod/webhook-f65b5d96-b8qfb                       1/1     Running   0          5m24s
+
+NAME                                 TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)                                   AGE
+service/activator-service            ClusterIP   10.96.214.187   <none>        9090/TCP,8008/TCP,80/TCP,81/TCP,443/TCP   5m24s
+service/autoscaler                   ClusterIP   10.96.3.212     <none>        9090/TCP,8008/TCP,8080/TCP                5m24s
+service/autoscaler-bucket-00-of-01   ClusterIP   10.96.248.82    <none>        8080/TCP                                  5m13s
+service/controller                   ClusterIP   10.96.171.193   <none>        9090/TCP,8008/TCP                         5m24s
+service/net-gateway-api-webhook      ClusterIP   10.96.200.191   <none>        9090/TCP,8008/TCP,443/TCP                 5m24s
+service/webhook                      ClusterIP   10.96.164.94    <none>        9090/TCP,8008/TCP,443/TCP                 5m24s
+
+NAME                                         READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/activator                    1/1     1            1           5m24s
+deployment.apps/autoscaler                   1/1     1            1           5m24s
+deployment.apps/controller                   1/1     1            1           5m24s
+deployment.apps/net-gateway-api-controller   1/1     1            1           5m24s
+deployment.apps/net-gateway-api-webhook      1/1     1            1           5m24s
+deployment.apps/webhook                      1/1     1            1           5m24s
+
+NAME                                                   DESIRED   CURRENT   READY   AGE
+replicaset.apps/activator-5656895fc6                   0         0         0       5m24s
+replicaset.apps/activator-666895ddd                    1         1         1       5m20s
+replicaset.apps/autoscaler-7f4754ffb4                  1         1         1       5m24s
+replicaset.apps/controller-cc7d86698                   1         1         1       5m24s
+replicaset.apps/net-gateway-api-controller-f89786cfd   1         1         1       5m24s
+replicaset.apps/net-gateway-api-webhook-699b8b87b7     1         1         1       5m24s
+replicaset.apps/webhook-f65b5d96                       1         1         1       5m24s
+
+NAME                                            REFERENCE              TARGETS               MINPODS   MAXPODS   REPLICAS   AGE
+horizontalpodautoscaler.autoscaling/activator   Deployment/activator   cpu: <unknown>/100%   1         20        1          5m24s
+horizontalpodautoscaler.autoscaling/webhook     Deployment/webhook     cpu: <unknown>/100%   1         5         1          5m24s
+```
+
+## All of `ingress`
+
+```
+➜ k get all -n ingress
+NAME                                            READY   STATUS    RESTARTS   AGE
+pod/example-00001-deployment-78964f56d4-92lds   2/2     Running   0          5m29s
+pod/traefik-j96x8                               1/1     Running   0          6m7s
+pod/traefik-wqr5g                               1/1     Running   0          6m7s
+
+NAME                            TYPE           CLUSTER-IP     EXTERNAL-IP    PORT(S)                                              AGE
+service/example                 LoadBalancer   10.96.22.71    172.19.255.2   80:32547/TCP                                         5m29s
+service/example-00001           ClusterIP      10.96.42.7     <none>         80/TCP,443/TCP                                       5m29s
+service/example-00001-private   ClusterIP      10.96.86.39    <none>         80/TCP,443/TCP,9090/TCP,9091/TCP,8022/TCP,8012/TCP   5m29s
+service/traefik                 LoadBalancer   10.96.61.149   172.19.255.1   80:32754/TCP,443:30535/TCP                           6m7s
+
+NAME                     DESIRED   CURRENT   READY   UP-TO-DATE   AVAILABLE   NODE SELECTOR   AGE
+daemonset.apps/traefik   2         2         2       2            2           <none>          6m7s
+
+NAME                                       READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/example-00001-deployment   1/1     1            1           5m29s
+
+NAME                                                  DESIRED   CURRENT   READY   AGE
+replicaset.apps/example-00001-deployment-78964f56d4   1         1         1       5m29s
+
+NAME                                        LATESTCREATED   LATESTREADY     READY   REASON
+configuration.serving.knative.dev/example   example-00001   example-00001   True
+
+NAME                                         CONFIG NAME   GENERATION   READY   REASON   ACTUAL REPLICAS   DESIRED REPLICAS
+revision.serving.knative.dev/example-00001   example       1            True             1                 0
+
+NAME                                URL                                        READY   REASON
+route.serving.knative.dev/example   http://example.ingress.svc.cluster.local   False   NotOwned
+
+NAME                                  URL                                        LATESTCREATED   LATESTREADY     READY   REASON
+service.serving.knative.dev/example   http://example.ingress.svc.cluster.local   example-00001   example-00001   False   NotOwned
+
+NAME                                                  URL                        READY   REASON
+domainmapping.serving.knative.dev/example.localhost   http://example.localhost   True
+```
+
 ## Troubleshooting
 
 ### Stuck `activator` deployment
